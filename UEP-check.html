@@ -63,7 +63,7 @@ table, td {
     border: 1px solid #444;
 }
 
-.invis, .invis2, .invis3 {
+.invis, .invis2, .invisDownload {
     visibility: hidden;
 }
 
@@ -126,7 +126,7 @@ table, td {
 <div id="outputStatus"></div>
 <table id="outputSetOfUEP"></table>
 <table id="outputAssayDesign"></table>
-<div class="invis3" id='withBut'><but id="buttonDownload">Download Assay</but></div>
+<div class="invisDownload" id='withBut'><but id="buttonDownload">Download Assay</but></div>
 
 <div class="invis2" id='withBut'><but id="buttonAddUEP">Add UEP</but></div>
 <div class="invis"> 
@@ -141,6 +141,7 @@ table, td {
         <input type="checkbox" name = "choiceSNP" value="G">  G
      </label>
      <div id='withBut'><but id="addOligo">Add</but></div>
+     <table id="outputAddedUEP"></table>
 </div>
 
 <script>
@@ -225,7 +226,7 @@ function fromXLStoInput (arrOfObjFromFile) {
     return arrayOfObjects
 }
 
-//функция для определения выбранного radio button - универсальная! на вход - name radio button ("r1")
+//базовая функция - для определения выбранного radio button - универсальная! на вход - name radio button ("r1")
 function radioButton(name) {
     let rad=document.getElementsByName(name);
     let output;
@@ -281,7 +282,6 @@ function chooseTM() {
     document.getElementById("InputSetOfUEP").dispatchEvent(new Event("input"));
 }
 
-
 // функция для записи значений масс терминаторов (введеных пользователем), output - array
 function inputTerminationMass () {
     let termMasses = {};
@@ -292,7 +292,7 @@ function inputTerminationMass () {
     return (termMasses);
 }
 
-//функция расчета массы UEP
+//базовая функция - расчет массы UEP
 function calculateUEPMass(UEPsequence) {
     let A = 0; let G = 0; let C = 0; let T = 0;
     let seq = UEPsequence;
@@ -306,6 +306,7 @@ function calculateUEPMass(UEPsequence) {
     let UEPmass = Number((249.2*A + 225.2*C + 265.2*G + 240.2*T + 64*(UEPLength - 1) + 2.95).toFixed(1));
     return (UEPmass)};
 
+//мапка для комплементарных букв    
 let cN = {
     'C': 'G',
     'A': 'T',
@@ -313,7 +314,7 @@ let cN = {
     'T': 'A',
 }
 
-//функция расчета массы EP
+//базовая функция расчета массы EP
 function calculateEPMass (objectOfUEP) {
     let terminationMasses = inputTerminationMass();
     let mass = objectOfUEP.UEPmass;
@@ -322,7 +323,6 @@ function calculateEPMass (objectOfUEP) {
     let seq = objectOfUEP.seq;
     let arrayOfObjForEP = [];
     
-
     for (i in snp) {
         let termNTP = dir == 'F' ? snp[i] : cN[snp[i]];
 
@@ -336,14 +336,14 @@ function calculateEPMass (objectOfUEP) {
     return (arrayOfObjForEP)
  }
 
-//функция формирования объектов с данными по каждому UEP
+//checkSet func 0 - проверка панели на наличие конфликтов, начинает работать при инпуте в textarea
 function checkSet(text) {
     if (!text) return;
-    let outputFromR1 = radioButton("r1");
-    let strings = text.trim().split("\n").toString().split(",");
-    let arrayOfObjects = [];
+    let outputFromR1 = radioButton("r1"); //базовая функция для определения формата ввода данных - seq или mass (сейчас по умолчанию всегда seq!)
+    let strings = text.trim().split("\n").toString().split(","); //чтение инпута
+    let arrayOfObjects = []; //создаем будущий аутпут (инфа о всей панели)
     
-    strings.forEach(str => {
+    strings.forEach(str => { // каждая строка - один UEP, создаем для него obj
         str = str.split("	");
         let objectOfUEP = {
             name: str[0],
@@ -351,21 +351,25 @@ function checkSet(text) {
                 ? str[1].toString()
                 : undefined,
             dir: str[2],
-            snp: str[3].split("/"),
+            snp: str[3].split("/"), //убираем слэш, нам нужен формат [T,C]
             UEPmass: outputFromR1 == 0
-                ? calculateUEPMass(str[1].toString().toUpperCase())
+                ? calculateUEPMass(str[1].toString().toUpperCase()) //считаем массу, если на вход - seq
                 : str[1],
         }
-        objectOfUEP.EP = calculateEPMass(objectOfUEP);
-        arrayOfObjects.push(objectOfUEP);
+        objectOfUEP.EP = calculateEPMass(objectOfUEP); //добавляем инфу об EP с помощью базовой функции
+        arrayOfObjects.push(objectOfUEP); //пушим объект по одному UEP в общий array (будущий output)
     })
-    let arrayConflicts = massCompare(arrayOfObjects);
-    CheckSetOutputStatus(arrayConflicts);
-    CheckSetOutputTable (arrayOfObjects);
+    let arrayConflicts = massCompare(arrayOfObjects); //базовая функция по проверке конфликтов
+    let htmlStatus = CheckSetOutputStatus(arrayConflicts); // checkSet func 1 - формирование статуса конфлитов (есть или нет)
+    document.getElementById("outputStatus").innerHTML = htmlStatus; // рендер статуса конфликтов 
+    let htmlTable = CheckSetOutputTable (arrayOfObjects); // checkSet func 2 - формирование таблицы c данными о панели
+    document.getElementById("outputSetOfUEP").innerHTML = htmlTable; //рендер таблицы с данными о панели
+    makeVisible("invisDownload") //после рендера результатов должна появиться кнопка Download
     finalOutput =  arrayOfObjects;
     return arrayOfObjects
 }
 
+//базовая функция для сравнения масс UEP и EP
 function massCompare(arrayOfObjects) {
     let arrayOfMasses = [];
     arrayOfObjects.forEach((oneUEP) => {
@@ -409,6 +413,7 @@ function massCompare(arrayOfObjects) {
     return (uniqueArrayFinal)
 }
 
+//checkSet func 1 - формирование аутпута для статуса проверки панели (есть конфликты или нет)
 function CheckSetOutputStatus (uniqueArrayFinal) {
     let html = "";
     if (uniqueArrayFinal.length == 0) {
@@ -419,9 +424,10 @@ function CheckSetOutputStatus (uniqueArrayFinal) {
             html += `<div> Attention! ${conflict[0]} has conflict with ${conflict[1]}! </div>`;
         })
     }
-    document.getElementById("outputStatus").innerHTML = html;
+    return html
 }
 
+//checkSet func 2 - формирование аутпута таблицы с данными по каждому олигу
 function CheckSetOutputTable (arrayOfObjects) {
     let html = `<tr>
         <th>Name</th>
@@ -440,8 +446,7 @@ function CheckSetOutputTable (arrayOfObjects) {
                     <td>${array.UEPmass}</td>
                 </tr>`;
     })
-    document.getElementById("outputSetOfUEP").innerHTML = html;
-    makeVisible("invis3")
+    return html
 }
 
 function CheckMassOutputTable (arrayOfObjects) {
@@ -513,8 +518,6 @@ function ConvertToCSV(objArray) {
   return str;
 }
 
-
-
 function makeJSON (finalOutput, fromFile) {
     let json = [];
     let firstString = {
@@ -582,71 +585,59 @@ function Download() {
     document.body.removeChild(downloadLink);
 };
 
+//далее модуль AddUEP
 
-document.getElementById("buttonAddUEP").addEventListener("click", () => makeVisible("invis"));
+document.getElementById("buttonAddUEP").addEventListener("click", () => makeVisible("invis")); //нажатие AddUEP -> инпуты для этого модуля становятся видимыми (базовая ф-ия makeVisible)
+
+//базовая функция makeVisible - делает элементы класса (имя класса подается на вход) видимыми
 function makeVisible(className) {
     document.getElementsByClassName(className)[0].style= "visibility: visible";
 }
 
-document.getElementById("addOligo").addEventListener("click", () => addUEP());
+document.getElementById("addOligo").addEventListener("click", () => addUEP()); //нажатие кнопки Add (после ввода данных о added UEP) -> функция AddUEP (модуль)
 
-// функция по добавлению UEP в существующий assay
+// AddUEP func 0 - главная функция по добавлению UEP в существующий assay, вызывается кнопкой, результат - вывод таблицы
 function addUEP () {
-    let snp = checkboxSNP();
-    console.log(snp);
-    let ampseq = document.getElementById("amp_oligoToAdd").value;
+    let snp = checkboxSNP(); //AddUEP func 1 - checkboxSNP - получение инпутных данных об snp 
+    let ampseq = document.getElementById("amp_oligoToAdd").value; //получение инпутных данных о посл-ти ампликона
     console.log("full amp: " + ampseq)
-    let dir = radioButton("r3")==0 ? "F" : "R";
-    let UEPmax = cutAmp(ampseq);
-    let suitableUEP = chooseUEP(UEPmax, dir, snp)
-    //сюда написать функцию для формирования аутпута
+    let dir = radioButton("r3")==0 ? "F" : "R"; //получение инпутных данных о направлении UEP, базовая ф-ия
+    ampseq = dir=="F" ? ampseq : reverseComplement(ampseq); // AddUEP func 4 - если dir = R, то amp -> reverse complement
+    let UEPmax = cutAmp(ampseq); //AddUEP func 3 - cutAmp - обрезает ампликон до размера <9000 Да
+    let suitableUEP = chooseUEP(UEPmax, dir, snp) //AddUEP func 4 - chooseUEP - аутпут - array из подходящих UEP (не вступают в конфликт с сущ. assay) 
+    let htmlOtput = addUEPoutput (suitableUEP) //AddUEP func 5 - addUEPoutput - выдает html таблицу с результатами
+    document.getElementById("outputAddedUEP").innerHTML = htmlOtput; //рендер html таблицы с результатами на странице
 }
 
-// модуль addUEP, подбор подходящих вариантов UEP, запуск из addUEP
-function chooseUEP(UEPmax, dir, snp) {
-    let suitableUEP = [];
-    let UEPseqVar = UEPmax;
-    let UEPmassVar = calculateUEPMass(UEPseqVar);
-    while (UEPmassVar > 4300) {
-        //создаем для каждого UEP object
-        let newUEP = {
-            name: "new",
-            seq: UEPseqVar,
-            dir: dir,
-            snp: snp,
-            UEPmass: UEPmassVar
+//AddUEP func 1 - функция для записи выбранных SNP из инпута checkbox
+function checkboxSNP() {
+    let check=document.getElementsByName('choiceSNP');
+    let output = [];
+    for (let i=0; i<check.length; i++) {
+        if (check[i].checked) {
+            output.push(check[i].value);
         }
-        newUEP.EP = calculateEPMass(newUEP);
-        //берем актуальный arrayOfObjects (текущий набор праймеров, загруженный пользователем)
-        let arrayOfObjects = checkSet(document.getElementById("InputSetOfUEP").value);
-        //исключаем UEP, у которых масса EP > 9000 (добавляем в arrayOfObject только те UEP, EP которых < 9000)
-        //и тут же проверяем обновленный arrayOfObjects на конфликты, если их нет, то новый UEP пушится в suitableUEP
-        let lessThan9000 = 0;
-        newUEP.EP.forEach((i)=> {
-            if (i.EPmass > 9000) {
-                lessThan9000 += 1;
-            }
-        })
-        if (lessThan9000 == 0) {
-            arrayOfObjects.push(newUEP);
-            if (massCompare(arrayOfObjects).length == 0) {
-                suitableUEP.push(newUEP);
-            }
-        }
-        //убираем первую букву UEPseqVar, чтобы в следующем цикле прогонять новую посл-ть 
-        UEPseqVar = UEPseqVar.slice(1);
-        UEPmassVar = calculateUEPMass(UEPseqVar)
     }
-    console.log(suitableUEP);
-    return suitableUEP
+    return output
+};
+
+// AddUEP func 2 - функция для превращения reverse amp в forward amp
+function reverseComplement (ampseq) {
+    let complementAmpseq = "";
+    //с помощью мапки превращаем буквы в комплеметарные
+    for (let i=0; i<ampseq.length; i++) {
+        complementAmpseq += cN[ampseq[i]]
+    }
+    let reverseComplementAmpseq = complementAmpseq.split("").reverse().join("") //делаем реверс цепи
+    return reverseComplementAmpseq
 }
 
-// функция по подсчету массы ампликона для модуля Add UEP
+// AddUEP func 3 - функция для обрезки ампликона до размера <9000 Да
 function cutAmp(ampseq) {
     let maxMass = 0; //масса олига (конечная) на каждом цикле (+64*(length...))
     let UEPmax = ""; //последовательность олига, растет на каждом цикле
     let UEPmassCount = 0; //масса олига неконечная (!), масса только букв (без +64...), нужна для счета
-    for (let i=ampseq.length-1; i>=0; i--) {
+    for (let i=ampseq.length-1; i>=0; i--) { //здесь - forward UEP, т.е. последняя буква (-1) - соседняя с SNP, поэтому надо удалять нуклеотиды с начала (0) до тех пор, пока масса не будет < 9000
         if (maxMass > 9000) break
         if (ampseq[i] == 'A') {
             maxMass = Number((Number(UEPmassCount)+249.2 + 64*(UEPmax.length - 1) + 2.95).toFixed(1));
@@ -671,17 +662,69 @@ function cutAmp(ampseq) {
     return UEPmax
 };
 
-//функция для записи выбранных SNP для модуля Add UEP
-function checkboxSNP() {
-    let check=document.getElementsByName('choiceSNP');
-    let output = [];
-    for (let i=0; i<check.length; i++) {
-        if (check[i].checked) {
-            output.push(check[i].value);
+// addUEP func 4 - подбор подходящих вариантов UEP, запуск из func 0
+function chooseUEP(UEPmax, dir, snp) {
+    let suitableUEP = []; //создаем пустой массив, который потом будет аутпутом
+    let UEPseqVar = UEPmax; //временная последовательность UEP, которая будет уменьшаться на 1 нуклеотид в каждом цикле
+    let UEPmassVar = calculateUEPMass(UEPseqVar); //расчет массы временной посл-ти UEP через базовую ф-ию 
+    //цикл, в котором на каждой итерации создается obj для UEP, проверка конфликтов и расчет массы (>4300 и <9000)
+    let i = 0; //создаем счетчик (только ради нумерации в названии new UEP)
+    while (UEPmassVar > 4300) {
+        //создаем для каждого UEP object
+        let newUEP = {
+            name: `new ${i}`,
+            seq: UEPseqVar,
+            dir: dir,
+            snp: snp,
+            UEPmass: UEPmassVar
         }
+        newUEP.EP = calculateEPMass(newUEP); //добавляем в только что созданный obj инфу об EP (базовая ф-ия)
+        //берем актуальный arrayOfObjects (текущий набор праймеров, загруженный пользователем)
+        let arrayOfObjects = checkSet(document.getElementById("InputSetOfUEP").value);
+        //исключаем UEP, у которых масса EP > 9000 (добавляем в arrayOfObject только те UEP, EP которых < 9000)
+        let lessThan9000 = 0;
+        newUEP.EP.forEach((i)=> {
+            if (i.EPmass > 9000) {
+                lessThan9000 += 1;
+            }
+        })
+        if (lessThan9000 == 0) {
+            arrayOfObjects.push(newUEP);
+            //и тут же проверяем обновленный arrayOfObjects на конфликты, если их нет, то новый UEP пушится в suitableUEP
+            if (massCompare(arrayOfObjects).length == 0) {
+                suitableUEP.push(newUEP); //этот array - будущий аутпут
+            }
+        }
+        UEPseqVar = UEPseqVar.slice(1); //убираем первую букву UEPseqVar, чтобы в следующем цикле прогонять новую посл-ть 
+        UEPmassVar = calculateUEPMass(UEPseqVar) //и сразу считаем массу нового UEPseqVar
+        i ++ //и не забываем увеличить счетчик
     }
-    return output
-};
+    console.log(suitableUEP);
+    return suitableUEP
+}
+
+//AddUEP func 5 - вывод результата подбора UEP в виде таблички
+function addUEPoutput (suitableUEP) {
+    let html = `<tr>
+        <th>Name</th>
+        <th>Sequence</th>
+        <th>Direction</th>
+        <th>SNP</th>
+        <th>UEP mass</th>
+        </tr>`
+        suitableUEP.forEach((UEPvariant) => {
+        let snp = UEPvariant.snp.join("/");
+        html += `<tr>
+                    <td>${UEPvariant.name}</td>
+                    <td>${UEPvariant.seq}</td>
+                    <td>${UEPvariant.dir}</td>
+                    <td>${snp}</td>
+                    <td>${UEPvariant.UEPmass}</td>
+                </tr>`;
+    })
+    return html
+}
+
 </script>
 
 </body>

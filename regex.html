@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<input type="file" id="input">
+<div id="out">
+</div>
+<script>
+    const input = document.getElementById("input");
+    const out = document.getElementById("out");
+
+    function handleFile(file) {
+        console.log("file:", file);
+        let reader = new FileReader();
+        reader.onload = () => console.log("readed",reader.result) & regexSearch(reader.result);
+        reader.readAsText(file);
+    }
+
+    function regexSearch(text) {
+        //const regex = /assayId="(.*?)".*?mass="(.*?)".*?snr="(.*?)"/g;
+        const regex = /<record.*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*\/>/g
+        const matched = [... text.matchAll(regex)];
+        console.log("matched",matched);
+        renderResult(matched);
+    }
+
+    function renderResult(res) {
+        // cleaning before start
+        while (out.childElementCount > 0) out.removeChild(out.children[0]);
+
+        const regexForHeader = /(\w+)=/g
+        let preHeader = [... res[0][0].matchAll(regexForHeader)];
+        let header = [];
+        preHeader.forEach(v => {
+            header.push(v[1])
+        });
+        console.log("header",header);
+
+        const table = document.createElement("table");
+
+        let rowHeaderElement = document.createElement("tr");
+        header.forEach(v => {
+            let valueElement = document.createElement("td");
+            let button = document.createElement("button");
+            button.innerText = v;
+            valueElement.appendChild(button);
+            button.addEventListener('click',() => hider(v));
+            valueElement.classList.add(v);
+            rowHeaderElement.appendChild(valueElement);
+        })
+        table.appendChild(rowHeaderElement);
+
+        res.forEach(row => {
+            let rowElement = document.createElement("tr");
+            row.shift(1);
+            let i = 0;
+            row.forEach(v => {
+                let valueElement = document.createElement("td");
+                valueElement.innerText = v.replaceAll(".",",");
+                valueElement.classList.add(header[i]);
+                rowElement.appendChild(valueElement);
+                i++;
+            })
+            table.appendChild(rowElement);
+        })
+        out.appendChild(table);
+
+    }
+
+let style = (function() {
+    let style = document.createElement("style");
+    style.appendChild(document.createTextNode(""));
+    document.head.appendChild(style);
+    console.log(style.sheet.cssRules);
+    return style;
+})();
+
+
+
+    function hider(h) {
+        style.sheet.insertRule(`.${h}{display:none;}`);
+    }
+
+    input.addEventListener("change",(e)=>handleFile(e.target.files[0]));
+</script>
+</body>
+</html>

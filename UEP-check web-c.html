@@ -21,117 +21,15 @@ body {
     border-right: 1px solid #bbb;
 }
 
-textarea { 
-    width: 100%;
-    font-size: 1.2em;
-    margin-bottom: 1em;
-    height: 4em;
-    color: black;
-}
-
-div {
-    margin: 1em;
-    font-size: 1.2em;
-}
-
-#withBut {
-display: flex;
-align-items: center;
-justify-content: center;
-}
-
-but {
-width: 7em;
-display: block;
-display: flex;
-align-items: center;
-justify-content: center;
-padding: 0.4em;
-margin: 0.5em;
-border: 4px solid black;
-border-radius: 0.5em;
-background: white;
-font-weight: bold;
-text-align: center;
-color: var(--text_inside);
-}
-
-table {
-    width: 100%;
-}
-table, td {
-    border: 1px solid #444;
-}
-
-.invis, .invis2, .invisDownload {
-    visibility: hidden;
-}
-
 </style>
 
-<style>
-.header1 {
-    font-size: 2.5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
-.header2 {
-    font-size: 2em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.hidden {
-    display: none;
-}
-
-#InputSetOfUEP {
-    height: 10em;
-}
-
-#modediv {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.mode {
-    background: #232323;
-    font-size: 1.5em;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    color: var(--main_text-color);
-    margin: 1em;
-}
-
-#assay {
-    border-bottom: solid;
-}
-
-#analysis {
-    border-bottom: none;
-}
-
-#Results-Analysis {
-    visibility: hidden;
-}
-
-#UEP-check {
-    visibility: visible;
-}
-
-</style>
 </head>
 <body>
-<div id="modediv"> 
-    <button class="mode" id="assay"> Assay Check </button>
-    <button class="mode" id="analysis"> Results Analysis </button>
-</div>
-<div id="UEP-check">
-<div> Enter the masses of terminators (after ionization): </div>
+
+<term-mix></term-mix>
+
+<!--div> Enter the masses of terminators (after ionization): </div>
 <div>
     <input name="r2" type="radio" value="" checked="checked"> iPlex
     <input name="r2" type="radio" value=""> ddNTP 
@@ -143,43 +41,31 @@ table, td {
 <div> + A <input id="InputMassA" type="number" value='271.2' > </div>
 <div> + T <input id="InputMassT" type="number" value='327.1'> </div>
 <div> + G <input id="InputMassG" type="number" value='287.3'> </div>
-<div> + C <input id="InputMassC" type="number" value='247.2'> </div>
-
-<div class="header2"> Check the mass </div>
-<textarea type='text' placeholder="tgactAGACCTGAGCCTCTTC" id='InputCheckMass'></textarea>
-<table id="outputCheckMass"></table>
+<div> + C <input id="InputMassC" type="number" value='247.2'> </div!-->
 
 
-<div class="header2"> Check the set of UEP </div>
-<div class = "hidden">
-<input name="r1" type="radio" value="" checked="checked"> UEP sequence
-<input name="r1" type="radio" value=""> UEP mass
-</div>
-<textarea type='text' id='InputSetOfUEP' placeholder="UEP1	agTACAGGCTGCCTCAGC	F	C/T"></textarea>
-<input type="file" id="inputFile">
-
-<div id="outputStatus"></div>
-<table id="outputSetOfUEP"></table>
-<div class="invisDownload" id='withBut'><but id="buttonDownload">Download Assay</but></div>
-
-<div class="invis2" id='withBut'><but id="buttonAddUEP">Add UEP</but></div>
-<div class="invis"> 
-    <textarea type='text' id='amp_oligoToAdd'></textarea>
-     <div id='withBut'><but id="addOligo">Add</but></div>
-     <table-out></table-out>
-</div>
-</div>
-
-<div id="Results-Analysis"> 
-<input type="file" id="input">
-<div id="out">
 
 </div>
 
 <template> 
+    <div> header </div>
+    <textarea type='text'></textarea>
     <table></table>
 
     <style>
+        div {
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        textarea {
+            width: 100%;
+            font-size: 1.2em;
+            margin-bottom: 1em;
+            height: 4em;
+            color: var(--text_inside);
+        }
         table {
             width: 100%;
         }
@@ -191,85 +77,29 @@ table, td {
 
 <script>
 
-let finalOutput = [];
-let fromFile = [];
+class TermMix extends HTMLElement {
 
-const inputFile = document.getElementById("inputFile");
-function handleFile(file) {
-  //console.log("file:", file);
-    let reader = new FileReader();
-    reader.onload = () => {finalOutput = regexSearch(reader.result)};
-    reader.readAsText(file);
-}
-
-function regexSearch(text) {
-        const regex = /W\d[^W]*/g
-        const matched = [... text.matchAll(regex)];
-        fromFile = matched;
-        let arrayOfObjects = renderResult(matched);
-        return arrayOfObjects
+    shadowDOM = this.attachShadow({mode: "closed"});
+    TM = {
+        'A': 271.2,
+        'T': 327.1,
+        'G': 287.3,
+        'C': 247.2
     }
 
-function makeAllele (oneRS) {
-    let array = [];
-    for (let i = 14; i<25; i += 3) {
-        let ntpToAdd = oneRS[i+2].split("").at(-1);
-        let snp = oneRS[11] == "F" ? ntpToAdd : cN[ntpToAdd];
-        let obj = {
-            allele: oneRS[i],
-            EPmass: oneRS[i+1],
-            EPseq: oneRS[i+2]
-        }
-        array.push(obj)
+    constructor() {
+        super();
+        const template = document.querySelector("template").content.cloneNode(true);
+        this.shadowDOM.appendChild(template);
+        const header = this.shadowDOM.querySelector("div");
+        const radBut = document.createElement("input");
+        this.shadowDOM.appendChild(radBut);
+        this.shadowDOM.removeChild(this.shadowDOM.querySelector("textarea"));
     }
-    return array
+
 }
 
-function renderResult(res){
-    let arrOfObjFromFile = [];
-    for (let i=0; i<res.length; i++) {
-        let oneRS = res[i][0];
-        oneRS = oneRS.split("\t");
-        let objFromFile = {
-            name: oneRS[2],
-            dir: oneRS[11],
-            UEPmass: oneRS[12],
-            seq: oneRS[13],
-            EP: makeAllele(oneRS)
-        }
-        console.log(objFromFile)
-        let snp = [];
-        objFromFile.EP.forEach((e)=> {
-            e.allele && snp.push(e.allele)
-        }); 
-        objFromFile.snp = snp;    
-        arrOfObjFromFile.push(objFromFile);
-    }
-    console.log(arrOfObjFromFile);
-    let arrayOfObjects = fromXLStoInput (arrOfObjFromFile);
-    return arrayOfObjects;
-}
-
-function fromXLStoInput (arrOfObjFromFile) {
-    let arrayOfObjects = [];
-    arrOfObjFromFile.forEach((rs) => {
-        let objectOfUEP = {
-            name: rs.name,
-            seq: rs.seq.toUpperCase(),
-            dir: rs.dir,
-            snp: rs.snp,
-            UEPmass: calculateUEPMass(rs.seq.toUpperCase()),
-        }
-        objectOfUEP.EP = calculateEPMass(objectOfUEP);
-        arrayOfObjects.push(objectOfUEP);
-    })
-    console.log(arrayOfObjects);
-    
-    let arrayConflicts = massCompare(arrayOfObjects);
-    CheckSetOutputStatus(arrayConflicts);
-    CheckSetOutputTable (arrayOfObjects);
-    return arrayOfObjects
-}
+customElements.define("term-mix", TermMix); //создаем элемент класса TermMix на странице
 
 //базовая функция - для определения выбранного radio button - универсальная! на вход - name radio button ("r1")
 function radioButton(name) {
@@ -534,18 +364,18 @@ function checkMass (text) {
     CheckMassOutputTable(arrayOfObjects);
 }
 
-document.getElementById("InputCheckMass").addEventListener("input", () => checkMass(document.getElementById("InputCheckMass").value));
-document.getElementById("InputSetOfUEP").addEventListener("input", () => checkSet(document.getElementById("InputSetOfUEP").value));
-document.getElementsByName('r1').forEach( r =>
+// document.getElementById("InputCheckMass").addEventListener("input", () => checkMass(document.getElementById("InputCheckMass").value));
+//document.getElementById("InputSetOfUEP").addEventListener("input", () => checkSet(document.getElementById("InputSetOfUEP").value));
+/*document.getElementsByName('r1').forEach( r =>
     r.addEventListener("input", () => checkSet(document.getElementById("InputSetOfUEP").value))
 )
 inputFile.addEventListener("change",(e)=>handleFile(e.target.files[0]));
 
-/* при переключении ТМ (radio button) изменяются value внутри инпутов масс букв*/
+/* при переключении ТМ (radio button) изменяются value внутри инпутов масс букв
 document.getElementsByName('r2').forEach( r =>
     r.addEventListener("change", () => chooseTM()));
 
-document.getElementById("buttonDownload").addEventListener("click", Download)
+document.getElementById("buttonDownload").addEventListener("click", Download) */
 
 function ConvertToCSV(objArray) {
   let array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
@@ -632,60 +462,39 @@ function Download() {
 
 //далее модуль AddUEP
 
-document.getElementById("buttonAddUEP").addEventListener("click", () => makeVisible("invis")); //нажатие AddUEP -> инпуты для этого модуля становятся видимыми (базовая ф-ия makeVisible)
-
-//класс WC - для рендера аутпутной таблицы модуля AddUEP
-class WCoutTable extends HTMLElement {
-    shadowDOM = this.attachShadow({mode: "closed"});
-    constructor() {
-        super();
-        const template = document.querySelector("template").content.cloneNode(true);
-        this.shadowDOM.appendChild(template);
-    }
-    set html(htmlOutput) {
-        this.shadowDOM.querySelector("table").innerHTML = htmlOutput
-    }
-}
-customElements.define("table-out", WCoutTable);
-
-const outAddUEP = new WCoutTable(); //создаем константу, которую потом будем изменять (в нее будет идти разный аутпут)
-document.body.appendChild(outAddUEP); //добавляем эту константу в ДОМ
-
+//document.getElementById("buttonAddUEP").addEventListener("click", () => makeVisible("invis")); //нажатие AddUEP -> инпуты для этого модуля становятся видимыми (базовая ф-ия makeVisible)
 
 //базовая функция makeVisible - делает элементы класса (имя класса подается на вход) видимыми
 function makeVisible(className) {
     document.getElementsByClassName(className)[0].style= "visibility: visible";
 }
 
-document.getElementById("addOligo").addEventListener("click", () => addUEP()); //нажатие кнопки Add (после ввода данных о added UEP) -> функция AddUEP (модуль)
+//document.getElementById("addOligo").addEventListener("click", () => addUEP()); //нажатие кнопки Add (после ввода данных о added UEP) -> функция AddUEP (модуль)
 
 // AddUEP func 0 - главная функция по добавлению UEP в существующий assay, вызывается кнопкой, результат - вывод таблицы
 function addUEP () {
+    let snp = checkboxSNP(); //AddUEP func 1 - checkboxSNP - получение инпутных данных об snp 
     let ampseq = document.getElementById("amp_oligoToAdd").value; //получение инпутных данных о посл-ти ампликона
- //   let dir = radioButton("r3")==0 ? "F" : "R"; //получение инпутных данных о направлении UEP, базовая ф-ия
- //   ampseq = dir=="F" ? ampseq : reverseComplement(ampseq); // AddUEP func 4 - если dir = R, то amp -> reverse complement
-    let matched = readAmpSeq (ampseq); //AddUEP func 1 - прочтение посл-ти, разделение на forw, rev, snp
-    let forward = matched[0].toString(); //посл-ть левой части ампликона (для forward UEP)
-    let reverse = matched[2].toString(); //посл-ть правой части ампликона (для reverse UEP)
-    let snp = matched[1].toString().split("/"); //определяем SNP, сразу переводим в формат ["A", "C"]
-    let forUEPmax = cutAmp(forward); //AddUEP func 3 - cutAmp - обрезает ампликон forward до размера <9000 Да
-    let revUEPmax = cutAmp(reverseComplement(reverse)); //AddUEP func 2 и 3 - аналогично, но т.к. rev, сначала надо сделать reverse complement (func 2)
-    let forSuitableUEP = chooseUEP(forUEPmax, "F", snp); //AddUEP func 4 - chooseUEP - аутпут - array из подходящих UEP (не вступают в конфликт с сущ. assay) 
-    let revSuitableUEP = chooseUEP(revUEPmax, "R", snp); //AddUEP func 4 - chooseUEP - аналогично для reverse
-    let suitableUEP = forSuitableUEP; //создаем общий массив suitable UEP, в который сразу включаем forward UEP
-    revSuitableUEP.forEach((i) => { //а затем с помощью этой функции пушим туда же все reverse UEP
-        suitableUEP.push(i)
-    })
+    console.log("full amp: " + ampseq)
+    let dir = radioButton("r3")==0 ? "F" : "R"; //получение инпутных данных о направлении UEP, базовая ф-ия
+    ampseq = dir=="F" ? ampseq : reverseComplement(ampseq); // AddUEP func 4 - если dir = R, то amp -> reverse complement
+    let UEPmax = cutAmp(ampseq); //AddUEP func 3 - cutAmp - обрезает ампликон до размера <9000 Да
+    let suitableUEP = chooseUEP(UEPmax, dir, snp) //AddUEP func 4 - chooseUEP - аутпут - array из подходящих UEP (не вступают в конфликт с сущ. assay) 
     let htmlOtput = addUEPoutput (suitableUEP) //AddUEP func 5 - addUEPoutput - выдает html таблицу с результатами
-    outAddUEP.html = htmlOtput; //обновляем созданную заранее константу, таким образом рендерим таблицу
+    document.getElementById("outputAddedUEP").innerHTML = htmlOtput; //рендер html таблицы с результатами на странице
 }
 
-//Add UEP func 1 - чтение инпута регексом,на выход - array из трех мэтчей (forward, reverse, snp)
-function readAmpSeq (ampseq) {
-    const regex = /[A-Z\/]{1,}/gm; 
-    const matched = [... ampseq.matchAll(regex)];
-    return matched;
-}
+//AddUEP func 1 - функция для записи выбранных SNP из инпута checkbox
+function checkboxSNP() {
+    let check=document.getElementsByName('choiceSNP');
+    let output = [];
+    for (let i=0; i<check.length; i++) {
+        if (check[i].checked) {
+            output.push(check[i].value);
+        }
+    }
+    return output
+};
 
 // AddUEP func 2 - функция для превращения reverse amp в forward amp
 function reverseComplement (ampseq) {
@@ -781,17 +590,15 @@ function addUEPoutput (suitableUEP) {
         <th>SNP</th>
         <th>UEP mass</th>
         </tr>`
-    let i = 1; //ставим тут счетчик, чтобы можно было включить порядковый номер праймера в название
-    suitableUEP.forEach((UEPvariant) => {
-    let snp = UEPvariant.snp.join("/");
-    html += `<tr>
-                <td>new-${i}-${UEPvariant.dir}</td>
-                <td>${UEPvariant.seq}</td>
-                <td>${UEPvariant.dir}</td>
-                <td>${snp}</td>
-                <td>${UEPvariant.UEPmass}</td>
-            </tr>`;
-    i++;
+        suitableUEP.forEach((UEPvariant) => {
+        let snp = UEPvariant.snp.join("/");
+        html += `<tr>
+                    <td>${UEPvariant.name}</td>
+                    <td>${UEPvariant.seq}</td>
+                    <td>${UEPvariant.dir}</td>
+                    <td>${snp}</td>
+                    <td>${UEPvariant.UEPmass}</td>
+                </tr>`;
     })
     return html
 }
@@ -874,7 +681,7 @@ let style = (function() {
         style.sheet.insertRule(`.${h}{display:none;}`);
     }
 
-    input.addEventListener("change",(e)=>handleFile(e.target.files[0]));
+  //  input.addEventListener("change",(e)=>handleFile(e.target.files[0]));
 </script>
 
 </body>

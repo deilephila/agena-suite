@@ -1,0 +1,7 @@
+.git
+.vscode
+temp/**
+old-back/**
+front-only/**
+mfeprimer
+__pycache__/**

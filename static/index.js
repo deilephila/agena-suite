@@ -1,399 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-:root {
-  --main_background-color: #232323;
-  --main_text-color: #bbb;
-  --text_inside: black;
-}
-
-html {
-    background-color: var(--main_background-color);
-    color: var(--main_text-color);
-}
-body {
-    width: 50em;
-    margin: auto;
-    padding: 3em 2em;
-    border-left: 1px solid #bbb;
-    border-right: 1px solid #bbb;
-}
-
-textarea { 
-    width: 100%;
-    font-size: 1.2em;
-    margin-bottom: 1em;
-    height: 4em;
-    color: black;
-}
-
-div {
-    margin: 1em;
-    font-size: 1.2em;
-}
-
-#withBut {
-display: flex;
-align-items: center;
-justify-content: center;
-}
-
-but {
-width: 7em;
-display: block;
-display: flex;
-align-items: center;
-justify-content: center;
-padding: 0.4em;
-margin: 0.5em;
-border: 4px solid black;
-border-radius: 0.5em;
-background: white;
-font-weight: bold;
-text-align: center;
-color: var(--text_inside);
-}
-
-table {
-    width: 100%;
-}
-table, td {
-    border: 1px solid #444;
-}
-
-.invis, .invis2, .invisDownload {
-    visibility: hidden;
-}
-
-</style>
-
-<style>
-.header1 {
-    font-size: 2.5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.header2 {
-    font-size: 2em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.hidden {
-    display: none;
-}
-
-#InputSetOfUEP {
-    height: 10em;
-}
-
-#modediv {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.mode {
-    background: #232323;
-    font-size: 1.5em;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    color: var(--main_text-color);
-    margin: 1em;
-}
-
-#assay {
-    border-bottom: solid;
-}
-
-#analysis {
-    border-bottom: none;
-}
-
-#Results-Analysis {
-    visibility: hidden;
-}
-
-#UEP-check {
-    visibility: visible;
-}
-
-#buttonDownload {
-    width: 9em;
-    font-size: 0.75em
-}
-
-#addOligo {
-    width: 5em;
-    font-size: 20px;
-}
-
-#withBut {
-    margin: 0;
-}
-
-#buttonAddUEP {
-    width: 5em;
-    font-size: 20px;
-}
-
-
-</style>
-</head>
-<body>
-<div id="modediv"> 
-    <button class="mode" id="assay"> Assay Check </button>
-    <button class="mode" id="analysis"> Results Analysis </button>
-</div>
-<div id="UEP-check">
-    <div> Enter the masses of terminators (after ionization): </div>
-    <div>
-        <input name="r2" type="radio" value="" checked="checked"> iPlex
-        <input name="r2" type="radio" value=""> ddNTP 
-        <input name="r2" type="radio" value=""> TM-3M 
-        <input name="r2" type="radio" value=""> TM-1M
-        <input name="r2" type="radio" value=""> TM-U 
-    </div>
-
-    <div> + A <input id="InputMassA" type="number" value='271.2' > </div>
-    <div> + T <input id="InputMassT" type="number" value='327.1'> </div>
-    <div> + G <input id="InputMassG" type="number" value='287.3'> </div>
-    <div> + C <input id="InputMassC" type="number" value='247.2'> </div>
-
-    <div class="header2"> Check the mass </div>
-    <textarea type='text' placeholder="tgactAGACCTGAGCCTCTTC" id='InputCheckMass'></textarea>
-    <table id="outputCheckMass"></table>
-
-
-    <div class="header2"> Check the set of UEPs </div>
-    <div class = "hidden">
-        <input name="r1" type="radio" value="" checked="checked"> UEP sequence
-        <input name="r1" type="radio" value=""> UEP mass
-    </div>
-    <textarea type='text' id='InputSetOfUEP' placeholder="UEP1	agTACAGGCTGCCTCAGC	F	C/T"></textarea>
-    <input type="file" id="inputFile">
-
-    <div id="outputStatus"></div>
-    <table id="outputSetOfUEP"></table>
-    <div class="invisDownload" id='withBut'><but id="buttonDownload">Download Assay</but></div>
-
-    <div class="invis2" id='withBut'><but id="buttonAddUEP">Add UEP</but></div>
-    <div class="invis"> 
-        <textarea type='text' id='amp_oligoToAdd'></textarea>
-        <div id='withBut'><but id="addOligo">Find UEPs</but></div>
-        <table-out></table-out>
-    </div>
-</div>
-
-<mode-analysis></mode-analysis>
-
-<template> 
-    <table></table>
-
-    <style>
-        table {
-            width: 100%;
-        }
-        table, td {
-            border: 1px solid #444;
-        }
-    </style>
-</template>
-
-<template id="temp2"> 
-    <div id="analysis">
-        <input type="file" id="input">
-    </div>
-    <style>
-    </style>
-</template>
-
-<script> //далее скрипт для Results Analysis
- //   const input = document.getElementById("input"); - теперь это прописано в конструкторе класса 
- //   const out = document.getElementById("out"); - а это все равно не работает
-
-/*    function handleFile(file) {
-        console.log("file:", file);
-        let reader = new FileReader();
-        reader.onload = () => console.log("readed",reader.result) & regexSearch(reader.result);
-        reader.readAsText(file);
-    }
-
-    function regexSearch(text) {
-        //const regex = /assayId="(.*?)".*?mass="(.*?)".*?snr="(.*?)"/g;
-        const regex = /<record.*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*\/>/g
-        const matched = [... text.matchAll(regex)];
-        console.log("matched",matched);
-        renderResult(matched);
-    }
-
-    function renderResult(res) {
-        // cleaning before start
-        while (out.childElementCount > 0) out.removeChild(out.children[0]);
-
-        const regexForHeader = /(\w+)=/g
-        let preHeader = [... res[0][0].matchAll(regexForHeader)];
-        let header = [];
-        preHeader.forEach(v => {
-            header.push(v[1])
-        });
-        console.log("header",header);
-
-        const table = document.createElement("table");
-
-        let rowHeaderElement = document.createElement("tr");
-        header.forEach(v => {
-            let valueElement = document.createElement("td");
-            let button = document.createElement("button");
-            button.innerText = v;
-            valueElement.appendChild(button);
-            button.addEventListener('click',() => hider(v));
-            valueElement.classList.add(v);
-            rowHeaderElement.appendChild(valueElement);
-        })
-        table.appendChild(rowHeaderElement);
-
-        res.forEach(row => {
-            let rowElement = document.createElement("tr");
-            row.shift(1);
-            let i = 0;
-            row.forEach(v => {
-                let valueElement = document.createElement("td");
-                valueElement.innerText = v.replaceAll(".",",");
-                valueElement.classList.add(header[i]);
-                rowElement.appendChild(valueElement);
-                i++;
-            })
-            table.appendChild(rowElement);
-        })
-        out.appendChild(table);
-
-    }
-
-    
-let style = (function() {
-    let style = document.createElement("style");
-    style.appendChild(document.createTextNode(""));
-    document.head.appendChild(style);
-    console.log(style.sheet.cssRules);
-    return style;
-})();
-
-    function hider(h) {
-        style.sheet.insertRule(`.${h}{display:none;}`);
-    }
-*/
-  //  input.addEventListener("change",(e)=>handleFile(e.target.files[0]));
-</script>
-
-<script>
-//класс WC - для рендера mode-analysis
-class modeAnalysis extends HTMLElement {
-    shadowDOM = this.attachShadow({mode: "closed"});
-    style = (function() {
-        let style = document.createElement("style");
-        style.appendChild(document.createTextNode(""));
-        document.head.appendChild(style);
-        console.log(style.sheet.cssRules);
-        return style;
-    })()
-
-    constructor() {
-        super();
-        const temp = document.getElementById("temp2").content.cloneNode(true);
-        this.shadowDOM.appendChild(temp);
-        const input = this.shadowDOM.querySelector('input');
-        input.addEventListener("change",(e)=>handleFile(e.target.files[0]));
-        const out = document.createElement('div');
-        this.shadowDOM.querySelector('div').appendChild(out);
-    }
-
-    handleFile(file) {
-        console.log("file:", file);
-        let reader = new FileReader();
-        reader.onload = () => console.log("readed",reader.result) & this.regexSearch(reader.result);
-        reader.readAsText(file);
-    }
-
-    regexSearch(text) {
-        //const regex = /assayId="(.*?)".*?mass="(.*?)".*?snr="(.*?)"/g;
-        const regex = /<record.*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*?\w="(.*?)".*\/>/g
-        const matched = [... text.matchAll(regex)];
-        console.log("matched",matched);
-        this.renderResult(matched);
-    }
-
-    renderResult(res) {
-        // cleaning before start
-        while (this.out.childElementCount > 0) this.out.removeChild(out.children[0]);
-
-        const regexForHeader = /(\w+)=/g
-        let preHeader = [... res[0][0].matchAll(regexForHeader)];
-        let header = [];
-        preHeader.forEach(v => {
-            header.push(v[1])
-        });
-        console.log("header",header);
-
-        const table = document.createElement("table");
-
-        let rowHeaderElement = document.createElement("tr");
-        header.forEach(v => {
-            let valueElement = document.createElement("td");
-            let button = document.createElement("button");
-            button.innerText = v;
-            valueElement.appendChild(button);
-            button.addEventListener('click',() => this.hider(v));
-            valueElement.classList.add(v);
-            rowHeaderElement.appendChild(valueElement);
-        })
-        table.appendChild(rowHeaderElement);
-
-        res.forEach(row => {
-            let rowElement = document.createElement("tr");
-            row.shift(1);
-            let i = 0;
-            row.forEach(v => {
-                let valueElement = document.createElement("td");
-                valueElement.innerText = v.replaceAll(".",",");
-                valueElement.classList.add(header[i]);
-                rowElement.appendChild(valueElement);
-                i++;
-            })
-            table.appendChild(rowElement);
-        })
-        out.appendChild(table);
-    }
-
-    hider(h) {
-        this.style.sheet.insertRule(`.${h}{display:none;}`);
-    }
-
-    
-
-}
-
-//это сразу рендерит модуль на странице
-//customElements.define("mode-analysis", modeAnalysis);
-//let aa = new modeAnalysis;
-
-
-document.getElementById("analysis").addEventListener("click", () => changeMode("analysis","assay"))
-document.getElementById("assay").addEventListener("click", () => changeMode("assay","analysis"))
-
-//пока работает только в одну сторону
-function changeMode(modeFin, modeInit) {
-    customElements.define("mode-analysis", modeAnalysis); //рендерим мод анализ
-    document.body.removeChild(document.getElementById("UEP-check")); //удаляем див, соотв. моду эссей
-}
-
-
-
 const inputFile = document.getElementById("inputFile");
 function handleFile(file) {
   //console.log("file:", file);
@@ -820,6 +424,7 @@ function makeJSON (finalOutput, fromFile) {
 }
 
 function Download() {
+    console.log(fromFile)
     let json = fromFile[0] == undefined ? finalOutput : fromFile;
     let newjson = makeJSON (finalOutput, fromFile);
     let csv = ConvertToCSV(newjson);
@@ -843,13 +448,24 @@ class WCoutTable extends HTMLElement {
     shadowDOM = this.attachShadow({mode: "closed"});
     constructor() {
         super();
-        const template = document.querySelector("template").content.cloneNode(true);
+        const template = document.getElementById("template1").content.cloneNode(true);
         this.shadowDOM.appendChild(template);
     }
     set html(htmlOutput) {
         this.shadowDOM.querySelector("table").innerHTML = htmlOutput
     }
+    set warning(htmlWarning) {
+        this.shadowDOM.querySelector("div").innerHTML = htmlWarning
+    }
 }
+
+function clear(elementName) {
+        while (elementName.firstChild) {
+            elementName.firstChild.remove();
+        }
+    }
+
+const out = document.getElementById("out");
 customElements.define("table-out", WCoutTable);
 
 const outAddUEP = new WCoutTable(); //создаем константу, которую потом будем изменять (в нее будет идти разный аутпут)
@@ -881,9 +497,71 @@ function addUEP () {
     revSuitableUEP.forEach((i) => { //а затем с помощью этой функции пушим туда же все reverse UEP
         suitableUEP.push(i)
     })
-    let htmlOtput = addUEPoutput (suitableUEP) //AddUEP func 5 - addUEPoutput - выдает html таблицу с результатами
-    outAddUEP.html = htmlOtput; //обновляем созданную заранее константу, таким образом рендерим таблицу
+    //если suitableUEP пустой, то не надо даже делать request, надо сразу выводить warning
+    if (suitableUEP.length == 0) {
+        let html = "Невозможно подобрать UEP подходящей массы :(";
+      //  clear(out);
+        outAddUEP.warning = html 
+        return
+    }
+
+    //тут создаем набор UEP на проверку на бэке
+    let suitableUEP_forBack = new Object
+    suitableUEP.forEach ((i) => {
+        suitableUEP_forBack[i.name] = {
+            "seq": i.seq,
+            "direction": i.dir,
+            "snp": i.snp,
+            "weight": i.UEPmass
+        } 
+    })
+
+    //далее надо создать панель в нужном для бэка формате
+    let arrayOfObjects = checkSet(document.getElementById("InputSetOfUEP").value);
+    let panelBack = new Object;
+    arrayOfObjects.forEach((i) => {
+        panelBack[i.name] = i.seq
+    })
+
+    //тут создаем значения TM в нужном для бэка формате
+    let TMBackend = {
+        'min': 60,
+        'max': 72
+    }
+
+    //а тут формируем собственно object для передачи на бэк
+    let forBackend = {
+        "UEP": suitableUEP_forBack,
+        "Panel": panelBack,
+        "TM": TMBackend
+    }
+    console.log(forBackend)
+    suitableUEP_request (forBackend)
 }
+
+
+function suitableUEP_request (forBackend) {
+    async function postAddUEP() {
+        const response = await fetch('http://127.0.0.1:8000/addUEP', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify(forBackend)
+        });
+        console.log(await response)
+        const result = await response.json();
+        console.log("result in async function", result)
+
+        let htmlOtput = addUEPoutputNEW (result);
+      //  clear(out); 
+        outAddUEP.html = htmlOtput; 
+        return result
+    }
+    postAddUEP()
+}
+
+
 
 //Add UEP func 1 - чтение инпута регексом,на выход - array из трех мэтчей (forward, reverse, snp)
 function readAmpSeq (ampseq) {
@@ -943,7 +621,7 @@ function chooseUEP(UEPmax, dir, snp) {
     while (UEPmassVar > 4300) {
         //создаем для каждого UEP object
         let newUEP = {
-            name: `new ${i}`,
+            name: `new${i}`,
             seq: UEPseqVar,
             dir: dir,
             snp: snp,
@@ -973,11 +651,13 @@ function chooseUEP(UEPmax, dir, snp) {
     return suitableUEP
 }
 
-//AddUEP func 5 - вывод результата подбора UEP в виде таблички 
-function addUEPoutput (suitableUEP) {
-    if (suitableUEP.length == 0) {
-        let html = "Your panel is too full, there is not enough free space for a new UEP :(";
-        return html
+// вывод результата подбора UEP в виде таблички - после MFE!
+function addUEPoutputNEW (suitableUEP) {
+    if (Object.keys(suitableUEP).length == 0) {
+        let html = "Ни один UEP не удовлетворяет условиям мультиплекса :(";
+      //  clear(out);
+        outAddUEP.warning = html
+        return
     }
     let html = `<tr>
         <th>Name</th>
@@ -985,25 +665,22 @@ function addUEPoutput (suitableUEP) {
         <th>Direction</th>
         <th>SNP</th>
         <th>UEP mass</th>
+        <th>Tm</th>
         </tr>`
     let i = 1; //ставим тут счетчик, чтобы можно было включить порядковый номер праймера в название
-    suitableUEP.forEach((UEPvariant) => {
-    let snp = UEPvariant.snp.join("/");
-    html += `<tr>
-                <td>new-${i}-${UEPvariant.dir}</td>
-                <td>${UEPvariant.seq}</td>
-                <td>${UEPvariant.dir}</td>
+    
+    Object.keys(suitableUEP).forEach( (key) => {
+        let snp = suitableUEP[key].snp.join("/");
+
+        html += `<tr>
+                <td>${key}-${suitableUEP[key].direction}</td>
+                <td>${suitableUEP[key].seq}</td>
+                <td>${suitableUEP[key].direction}</td>
                 <td>${snp}</td>
-                <td>${UEPvariant.UEPmass}</td>
+                <td>${suitableUEP[key].weight}</td>
+                <td>${suitableUEP[key].TM}</td>
             </tr>`;
-    i++;
-    })
+        i++;
+    });
     return html
 }
-
-</script>
-
-
-
-</body>
-</html>

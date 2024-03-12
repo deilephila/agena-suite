@@ -1,5 +1,6 @@
 import os
 import json
+dirname = os.path.dirname(__file__) #absolute path to this file, needed for relatives pathes in code below
 
 '''
 TM = {
@@ -47,7 +48,7 @@ def mfeInvoke (MFEinput):
         file.write(MFEinput)
     bashCommand = "./mfeprimer dimer -i temp/input.fa --out temp/outputMFE --dg -3.5 --score 4 --mismatch 2 --mono 17 --diva 2 --dntp 0.2 --oligo 95 --json"
     os.system(bashCommand)
-    path = "/home/alina/Desktop/GitHub/agena_panels/temp/outputMFE.json"
+    path = dirname + '/temp/outputMFE.json'
     while not os.path.exists(path):
         pass
     with open("temp/outputMFE.json") as file:
@@ -102,7 +103,7 @@ def addUEP(data, panel, TM):
     makeSeqUpperCase(panel)
     numberOfPrimers = len(data.keys())
 
-    dir_temp = "/home/alina/Desktop/GitHub/agena_panels/temp"
+    dir_temp = dirname + '/temp'
     if not os.path.exists(dir_temp):
         os.makedirs(dir_temp)
 
